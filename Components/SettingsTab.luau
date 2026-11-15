@@ -5,6 +5,8 @@ local GistMain = "https://gist.githubusercontent.com/minescartop1/8ce36218105a35
 return function(Tab)
     local Library = fenv.Abysall.Interface.Library
     local Env = fenv.Abysall.Environment
+    local SaveManager = fenv.Abysall.Interface.SaveManager
+    local ThemeManager = fenv.Abysall.Interface.ThemeManager
     local Players = game:GetService("Players")
 
     local Settings = Tab:AddTab("Settings", "settings")
@@ -86,4 +88,21 @@ return function(Tab)
         task.wait(0.5)
         loadstring(game:HttpGet(GistMain))()
     end)
+
+    -- config + theme menus (these were missing from the dump)
+    local function Try(Name, Func)
+        local Ok, Err = pcall(Func)
+        if not Ok then warn("[AMR] settings " .. Name .. " failed: " .. tostring(Err)) end
+    end
+    Try("managers", function()
+        ThemeManager:SetLibrary(Library)
+        SaveManager:SetLibrary(Library)
+        SaveManager:IgnoreThemeSettings()
+        SaveManager:SetIgnoreIndexes({ "MenuKeybind" })
+        ThemeManager:SetFolder("Abysall")
+        SaveManager:SetFolder("Abysall")
+    end)
+    Try("config", function() SaveManager:BuildConfigSection(Settings) end)
+    Try("themes", function() ThemeManager:ApplyToTab(Settings) end)
+    Try("autoload", function() SaveManager:LoadAutoloadConfig() end)
 end
